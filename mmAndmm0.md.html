@@ -1,0 +1,75 @@
+       **Metamath (mm) and Metamath zero (mm0)**
+
+
+# Primary parser (coming soon)
+
+mm0 and mm both use simple and efficients primary parsers to deserialize files into data structures, 
+based on simple grammars with no lookahead/backtracking
+
+##   Mapping strings to trees (and back)
+
+mm0 and mm can have the exact same internal representation of math expressions as trees.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ kotlin
+  wi = "->" { 
+      ph { 
+         wi = "->" {
+           ps 
+           th
+         }
+      }
+   } 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The same tree may be associated by a secondary parser to :
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ kotlin
+   // unique mm string
+   val string = "( ph -> ( ps -> th ) )"
+   
+   // multiple mm0 strings
+   val string1 = "( ph -> ( ps -> th ) )" // same as mm
+   val string2 = "ph -> ps -> th"         // no parentheses (operator precedences)
+   val string3 = "ph -> (ps -> th)"       // optional parentheses
+   val string4 = "ph -> (ps -> th )"      // optional white spaces
+
+The mm0 syntax, which is less unforgiving than the mm syntax, 
+brings mm0 closer to math than mm and lowers the entry barrier for formalized maths
+
+~~~~~~~~~~~~~~~~~
+
+# secondary parser (coming soon)
+
+The mm parser in the mm directory : 
+   - pure kotlin parser : dependency on antlr-kotlin (big and complex grammar)
+   - slow start (needs a few seconds (to build the needed state machine ?))
+   - cpu intensive, reasonnably fast (good enough for most use)
+   - static (immutable, tied to a precise version of set.mm, compile time work needed to update)
+
+The mm0 parser in the mm0 directory : 
+   - pure kotlin parser : handwritten, stand alone (simple grammar)
+   - instantateous start (lightweight)
+   - light on cpu/memory, really fast (parses all formulas of set.mm.mm0 in 154ms)
+   - dynamic (mutable on the fly)
+
+
+# compression
+
+size of 
+   set.mm (2020-02-13):
+    - uncompressed 37.3MB
+    - zip 13MB
+    - tar.xz 10.5MB
+  + set.mm0:
+    - uncompressed 9MB
+    - zip 921KB
+    - tar.xz 707KB
+  + set.mmu:
+    - uncompressed 448MB
+    - zip 22.7MB
+    - tar.xz 13.4MB
+  + set.mmb:
+    - uncompressed 31.2MB
+    - zip 12.3MB
+    - tar.xz 9.6MB 
+    - 7z 9.6MB
+
+<!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js" charset="utf-8"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js?" charset="utf-8"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
