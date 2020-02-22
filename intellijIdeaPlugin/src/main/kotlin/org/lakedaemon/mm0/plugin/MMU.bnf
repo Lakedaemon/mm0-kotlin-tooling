@@ -1,0 +1,84 @@
+{
+  parserClass="org.lakedaemon.mm0.plugin.MMUParser"
+  //parserUtilClass="org.lakedaemon.mm0.plugin.MMUParserUtil"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="MMU"
+  psiImplClassSuffix="Impl"
+  psiPackage="org.lakedaemon.mm0.plugin.psi"
+  psiImplPackage="org.lakedaemon.mm0.plugin.psi.impl"
+
+  elementTypeHolderClass="org.lakedaemon.mm0.plugin.psi.MMUTypes"
+  elementTypeClass="org.lakedaemon.mm0.plugin.MMUElementType"
+  tokenTypeClass="org.lakedaemon.mm0.plugin.MMUTokenType"
+
+  //psiImplUtilClass="org.lakedaemon.mm0.plugin.psi.impl.MMUPsiImplUtil"
+}
+
+MMUFile ::= directive*
+private directive ::= LEFT_PARENTHESIS (step-stmt | def-stmt | thm-stmt) RIGHT_PARENTHESIS
+private step-stmt ::= sort-stmt
+           |  term-stmt
+           |  axiom-stmt
+           |  input-stmt
+           |  output-stmt
+private sort-stmt ::= 'sort' sort-name 'pure'? 'strict'? 'provable'? 'free'?
+
+private term-stmt ::= 'term' term-name LEFT_PARENTHESIS term-binder* RIGHT_PARENTHESIS returnSortAndDependencies
+term-binder ::= LEFT_PARENTHESIS var-name sort-name LEFT_PARENTHESIS identifier* RIGHT_PARENTHESIS RIGHT_PARENTHESIS
+
+private axiom-stmt ::= 'axiom' identifier LEFT_PARENTHESIS (binder)* RIGHT_PARENTHESIS axiomHypotheses expr
+
+axiomHypotheses ::= LEFT_PARENTHESIS expr* RIGHT_PARENTHESIS
+
+private input-stmt ::= 'input' input-kind
+input-kind ::= 'string'
+
+private output-stmt ::= 'output' output-kind
+output-kind ::= 'string'
+
+identifier ::= ID | SORT | TERM
+sort-name ::= identifier
+returnSortAndDependencies ::= LEFT_PARENTHESIS sort-name LEFT_PARENTHESIS dependencies RIGHT_PARENTHESIS RIGHT_PARENTHESIS
+
+private def-stmt ::= ('local')? 'def' term-name LEFT_PARENTHESIS term-binder* RIGHT_PARENTHESIS returnSortAndDependencies LEFT_PARENTHESIS dummySorts RIGHT_PARENTHESIS expr
+term-name ::= identifier
+
+dependencies ::= (identifier)*
+dummySorts ::= (LEFT_PARENTHESIS identifier sort-name RIGHT_PARENTHESIS)*
+
+private thm-stmt ::= ('local'|'pub') 'theorem' assert-name LEFT_PARENTHESIS theorem-binder* RIGHT_PARENTHESIS  LEFT_PARENTHESIS hypotheses RIGHT_PARENTHESIS expr LEFT_PARENTHESIS theoremDummies RIGHT_PARENTHESIS proof-expr
+assert-name ::= identifier
+theorem-binder ::= LEFT_PARENTHESIS var-name sort-name (LEFT_PARENTHESIS identifier* RIGHT_PARENTHESIS)? RIGHT_PARENTHESIS
+
+hypotheses ::= (LEFT_PARENTHESIS identifier expr RIGHT_PARENTHESIS)*
+
+theoremDummies ::= (LEFT_PARENTHESIS identifier sort-name RIGHT_PARENTHESIS)*
+
+
+var-name ::= identifier
+
+
+//dummy-binder ::= LEFT_BRACE var-name COLON sort-name RIGHT_BRACE
+
+//hyp-binder ::= LEFT_PARENTHESIS var-name COLON expr RIGHT_PARENTHESIS
+//type ::= sort-name (var-name)*
+
+expr ::= var-name | term-name | LEFT_PARENTHESIS term-name (expr)* RIGHT_PARENTHESIS
+
+proof-expr ::= '?'
+            | identifier
+            |  LEFT_PARENTHESIS ':let' identifier proof-expr proof-expr RIGHT_PARENTHESIS
+            |  LEFT_PARENTHESIS ':conv' expr convertibilityProof proof-expr RIGHT_PARENTHESIS
+            |  LEFT_PARENTHESIS assert-name (identifier)* RIGHT_PARENTHESIS
+            |  LEFT_PARENTHESIS assert-name LEFT_PARENTHESIS expr* RIGHT_PARENTHESIS proof-expr* RIGHT_PARENTHESIS
+
+convertibilityProof::= identifier
+                     | LEFT_PARENTHESIS ':sym' convertibilityProof RIGHT_PARENTHESIS
+                     | LEFT_PARENTHESIS ':unfold' identifier expr LEFT_PARENTHESIS (identifier)* RIGHT_PARENTHESIS convertibilityProof RIGHT_PARENTHESIS
+                     | LEFT_PARENTHESIS identifier convertibilityProof* RIGHT_PARENTHESIS
+/*proof-expr ::= '?' | expr
+            |  LEFT_PARENTHESIS assert-name (expr)* (proof-expr)* RIGHT_PARENTHESIS
+            |  LEFT_BRACKET proof-expr EQUAL var-name RIGHT_BRACKET*/
+

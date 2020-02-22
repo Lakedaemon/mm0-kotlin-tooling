@@ -1,0 +1,84 @@
+{
+  parserClass="org.lakedaemon.mm0.plugin.MM0Parser"
+  //parserUtilClass="org.lakedaemon.mm0.plugin.MMUParserUtil"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="MM0"
+  psiImplClassSuffix="Impl"
+  psiPackage="org.lakedaemon.mm0.plugin.psi"
+  psiImplPackage="org.lakedaemon.mm0.plugin.psi.impl"
+
+  elementTypeHolderClass="org.lakedaemon.mm0.plugin.psi.MM0Types"
+  elementTypeClass="org.lakedaemon.mm0.plugin.MM0ElementType"
+  tokenTypeClass="org.lakedaemon.mm0.plugin.MM0TokenType"
+
+  //psiImplUtilClass="org.lakedaemon.mm0.plugin.psi.impl.MMUPsiImplUtil"
+}
+
+MM0File ::= statement*
+
+statement ::= sort-stmt
+           |  term-stmt
+           |  assert-stmt
+           |  def-stmt
+           |  notation-stmt
+           |  inout-stmt
+
+identifier ::= ID
+
+// SORTS
+sort-stmt ::= ('pure')? ('strict')? ('provable')? ('free')? 'sort' identifier SEMI-COLON
+
+// TERMS
+term-stmt ::= 'term' identifier (type-binder)* COLON arrow-type SEMI_COLON
+identifier_ ::= identifier | UNDERSCORE
+
+type ::= sort dependencies
+sort ::= identifier
+dependencies ::= (identifier)*
+
+type-binder ::= LEFT_BRACE (identifier)* COLON type RIGHT_BRACE
+             |  LEFT_PARENTHESIS (identifier_)* COLON type RIGHT_PARENTHESIS
+
+arrow-type ::= type | type GREATER arrow-type
+
+// ASSERTS
+assert-stmt ::= ('axiom' | 'theorem') identifier (formula-type-binder)* COLON formula-arrow-type SEMI-COLON
+formula-type-binder ::= LEFT_BRACE (identifier)* COLON type RIGHT_BRACE
+                     |  LEFT_PARENTHESIS (identifier_)* COLON (type | formula) RIGHT_PARENTHESIS
+
+formula-arrow-type ::= formula | (type | formula) GREATER formula-arrow-type
+formula ::= MATH_STRING
+
+// DEFINITIONS
+def-stmt ::= 'def' identifier (dummy-binder)* COLON type (EQUAL formula)? SEMICOLON
+
+dummy-binder ::= LEFT_BRACE (dummy-identifier)* COLON type RIGHT_BRACE
+              |  LEFT_PARENTHESIS (dummy-identifier)* COLON type RIGHT_PARENTHESIS
+dummy-identifier ::= DOT identifier | identifier_
+
+// Notations
+
+notation-stmt ::= delimiter-stmt
+               |  simple-notation-stmt
+               |  coercion-stmt
+               |  gen-notation-stmt
+
+delimiter-stmt ::= 'delimiter' formula SEMI_COLON
+simple-notation-stmt ::= ('infixl' | 'infixr' | 'prefix') identifier COLON constant 'prec' precedence-lvl SEMI_COLON
+constant ::= MATH_STRING
+precedence-lvl ::= NUMBER | 'max'
+coercion-stmt ::= 'coercion' identifier COLON identifier GREATER identifier SEMI_COLON
+gen-notation-stmt ::= 'notation' identifier (type-binder)* COLON type EQUAL prec-constant (notation-literal)* SEMI_COLON
+notation-literal ::= prec-constant | identifier
+prec-constant ::= LEFT_PARENTHESIS constant COLON precedence-lvl RIGHT_PARENTHESIS
+
+// input and output
+
+inout-stmt ::= input-stmt | output-stmt
+input-stmt ::= 'input' input-kind COLON (identifier | formula)* SEMI_COLON
+output-stmt ::= 'output' output-kind COLON (identifier | formula)* SEMI_COLON
+input-kind ::= identifier
+output-kind ::= identifier
+
